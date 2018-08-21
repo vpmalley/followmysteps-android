@@ -1,12 +1,19 @@
 package fr.vpm.followmysteps
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.design.widget.Snackbar
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 
 import kotlinx.android.synthetic.main.activity_steps.*
+
+private const val ACCESS_FINE_LOCATION_REQ = 101
 
 class StepsActivity : AppCompatActivity() {
 
@@ -16,8 +23,7 @@ class StepsActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
+            askGeoPosition()
         }
     }
 
@@ -36,4 +42,46 @@ class StepsActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
+
+    private fun askGeoPosition() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                            Manifest.permission.ACCESS_FINE_LOCATION)) {
+                val builder = AlertDialog.Builder(this)
+                builder.setTitle(R.string.geoposition_permission_title)
+                        .setMessage(R.string.geoposition_permission_message)
+                        .setPositiveButton(R.string.all_ok) { dialogInterface, i ->
+                            ActivityCompat.requestPermissions(this,
+                                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                                    ACCESS_FINE_LOCATION_REQ)
+                        }
+                builder.create().show()
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                        ACCESS_FINE_LOCATION_REQ)
+            }
+        } else {
+            determineGeoPosition()
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        when (requestCode) {
+            ACCESS_FINE_LOCATION_REQ -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    determineGeoPosition()
+                } else {
+                    Snackbar.make(fab, R.string.snackbar_geoposition_permission_denied, Snackbar.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun determineGeoPosition() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+
 }

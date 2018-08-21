@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">Follow My Steps</string>
     <string name="action_settings">Settings</string>
+    <string name="snackbar_geoposition_permission_denied">You did not allow access to your current location</string>
+    <string name="all_ok">OK</string>
+    <string name="geoposition_permission_title">Your location</string>
+    <string name="geoposition_permission_message">We will post your current location on the map of your steps</string>
 </resources>
