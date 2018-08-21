@@ -1,6 +1,7 @@
 package fr.vpm.followmysteps
 
 import android.Manifest
+import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.design.widget.Snackbar
@@ -10,12 +11,18 @@ import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
-
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.*
 import kotlinx.android.synthetic.main.activity_steps.*
 
 private const val ACCESS_FINE_LOCATION_REQ = 101
+private const val CHECK_SETTINGS_REQ = 102
 
 class StepsActivity : AppCompatActivity() {
+
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var locationCallback: LocationCallback
+    private var requestingLocationUpdates = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,6 +31,18 @@ class StepsActivity : AppCompatActivity() {
 
         fab.setOnClickListener { view ->
             askGeoPosition()
+        }
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult?) {
+                locationResult ?: return
+                for (location in locationResult.locations) {
+                    Snackbar.make(fab, "location " + location.toString(), Snackbar.LENGTH_SHORT).show()
+                    stopLocationUpdates()
+                    requestingLocationUpdates = false
+                }
+            }
         }
     }
 
@@ -41,6 +60,32 @@ class StepsActivity : AppCompatActivity() {
             R.id.action_settings -> true
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        startLocationUpdates()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        stopLocationUpdates()
+    }
+
+    private fun startLocationUpdates() {
+        try {
+            if (requestingLocationUpdates)
+                fusedLocationClient.requestLocationUpdates(locationRequest(),
+                        locationCallback,
+                        null)
+        } catch (e: SecurityException) {
+            Snackbar.make(fab, "could not find location", Snackbar.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun stopLocationUpdates() {
+        if (requestingLocationUpdates)
+            fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
     private fun askGeoPosition() {
@@ -80,7 +125,31 @@ class StepsActivity : AppCompatActivity() {
     }
 
     private fun determineGeoPosition() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val locationRequest = locationRequest()
+        val builder = LocationSettingsRequest.Builder()
+                .addLocationRequest(locationRequest)
+        LocationServices.getSettingsClient(this)
+                .checkLocationSettings(builder.build())
+                .addOnFailureListener { exception ->
+                    if (exception is ResolvableApiException) {
+                        try {
+                            exception.startResolutionForResult(this@StepsActivity, CHECK_SETTINGS_REQ)
+                        } catch (sendEx: IntentSender.SendIntentException) {
+                            // Ignore the error.
+                        }
+                    }
+                }
+
+        requestingLocationUpdates = true
+        startLocationUpdates()
+    }
+
+    private fun locationRequest(): LocationRequest {
+        return LocationRequest().apply {
+            interval = 10000
+            fastestInterval = 10000
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        }
     }
 
 
