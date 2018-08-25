@@ -44,7 +44,7 @@ class StepsActivity : AppCompatActivity() {
                 for (location in locationResult.locations) {
                     stopLocationUpdates()
                     requestingLocationUpdates = false
-                    location?.let { syncLocation(location) }
+                    location?.let { storeLocation(location) }
                 }
             }
         }
@@ -58,6 +58,10 @@ class StepsActivity : AppCompatActivity() {
                 OnFailureListener {
                     Snackbar.make(fab, "failed syncing", Snackbar.LENGTH_SHORT)
                 })
+    }
+
+    private fun storeLocation(location: Location) {
+        RealmLocationStore().storeLocation(location)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
