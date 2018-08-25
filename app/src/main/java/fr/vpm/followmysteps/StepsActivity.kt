@@ -14,12 +14,9 @@ import android.view.Menu
 import android.view.MenuItem
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
-import com.google.firebase.firestore.FirebaseFirestore
-import fr.vpm.followmysteps.model.Geometry
-import fr.vpm.followmysteps.model.MapboxLocation
-import fr.vpm.followmysteps.model.Properties
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.android.gms.tasks.OnSuccessListener
 import kotlinx.android.synthetic.main.activity_steps.*
-import java.util.*
 
 private const val ACCESS_FINE_LOCATION_REQ = 101
 private const val CHECK_SETTINGS_REQ = 102
@@ -54,18 +51,13 @@ class StepsActivity : AppCompatActivity() {
     }
 
     private fun syncLocation(location: Location) {
-        val syncableLocation = MapboxLocation(Geometry(Arrays.asList(location.longitude, location.latitude)),
-                Properties(title = "I was here"))
-
-        val db = FirebaseFirestore.getInstance()
-        db.collection("my-steps")
-                .add(syncableLocation)
-                .addOnSuccessListener {
+        FirestoreLocationSync().syncLocation(location,
+                OnSuccessListener {
                     Snackbar.make(fab, "synced", Snackbar.LENGTH_SHORT)
-                }
-                .addOnFailureListener {
+                },
+                OnFailureListener {
                     Snackbar.make(fab, "failed syncing", Snackbar.LENGTH_SHORT)
-                }
+                })
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
