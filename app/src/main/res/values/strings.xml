@@ -5,4 +5,5 @@
     <string name="all_ok">OK</string>
     <string name="geoposition_permission_title">Your location</string>
     <string name="geoposition_permission_message">We will post your current location on the map of your steps</string>
+    <string name="welcome_speech">Hi there! Click + to add one more step</string>
 </resources>
