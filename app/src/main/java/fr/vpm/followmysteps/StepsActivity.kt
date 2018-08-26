@@ -25,7 +25,6 @@ class StepsActivity : AppCompatActivity() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
-    private lateinit var locationSync: FirestoreLocationSync
     private var requestingLocationUpdates = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,14 +49,19 @@ class StepsActivity : AppCompatActivity() {
         }
     }
 
-    private fun syncLocation(location: Location) {
-        FirestoreLocationSync().syncLocation(location,
-                OnSuccessListener {
-                    Snackbar.make(fab, "synced", Snackbar.LENGTH_SHORT)
-                },
-                OnFailureListener {
-                    Snackbar.make(fab, "failed syncing", Snackbar.LENGTH_SHORT)
-                })
+    private fun syncAllLocations(): Boolean {
+        val firestoreLocationSync = FirestoreLocationSync()
+        val nonSynchronisedLocations = RealmLocationStore().retrieveNonSynchronisedLocations()
+        nonSynchronisedLocations?.forEach { location ->
+            firestoreLocationSync.syncLocation(location,
+                    OnSuccessListener {
+                        Snackbar.make(fab, "synced", Snackbar.LENGTH_SHORT)
+                    },
+                    OnFailureListener {
+                        Snackbar.make(fab, "failed syncing", Snackbar.LENGTH_SHORT)
+                    })
+        }
+        return true
     }
 
     private fun storeLocation(location: Location) {
@@ -75,7 +79,8 @@ class StepsActivity : AppCompatActivity() {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
-            R.id.action_settings -> true
+            R.id.action_sync ->
+                syncAllLocations()
             else -> super.onOptionsItemSelected(item)
         }
     }
