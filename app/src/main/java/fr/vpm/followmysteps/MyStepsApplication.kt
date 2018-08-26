@@ -8,6 +8,5 @@ internal class MyStepsApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         Realm.init(this)
-        Realm.deleteRealm(Realm.getDefaultConfiguration())
     }
 }
