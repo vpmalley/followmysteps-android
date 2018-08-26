@@ -6,7 +6,9 @@ import fr.vpm.followmysteps.realm.RealmLocation
 import fr.vpm.followmysteps.realm.RealmProperties
 import io.realm.Realm
 import io.realm.RealmList
+import io.realm.RealmResults
 import io.realm.kotlin.createObject
+import io.realm.kotlin.where
 
 
 class RealmLocationStore {
@@ -25,5 +27,15 @@ class RealmLocationStore {
             storedLocation.geometry = geometry
             storedLocation.properties = properties
         }
+
+    }
+
+    fun retrieveNonSynchronisedLocations(): RealmResults<RealmLocation>? {
+        val realm = Realm.getDefaultInstance()
+
+        val results = realm.where<RealmLocation>()
+                .equalTo("synchronised", false)
+                .findAll()
+        return results
     }
 }
