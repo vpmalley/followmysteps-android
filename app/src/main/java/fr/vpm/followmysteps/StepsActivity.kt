@@ -55,10 +55,11 @@ class StepsActivity : AppCompatActivity() {
         nonSynchronisedLocations?.forEach { location ->
             firestoreLocationSync.syncLocation(location,
                     OnSuccessListener {
-                        Snackbar.make(fab, "synced", Snackbar.LENGTH_SHORT)
+                        Snackbar.make(fab, "synced", Snackbar.LENGTH_SHORT).show()
+                        location.synchronised = true
                     },
                     OnFailureListener {
-                        Snackbar.make(fab, "failed syncing", Snackbar.LENGTH_SHORT)
+                        Snackbar.make(fab, "failed syncing", Snackbar.LENGTH_SHORT).show()
                     })
         }
         return true
@@ -66,6 +67,7 @@ class StepsActivity : AppCompatActivity() {
 
     private fun storeLocation(location: Location) {
         RealmLocationStore().storeLocation(location)
+        Snackbar.make(fab, "location stored", Snackbar.LENGTH_SHORT).show()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
