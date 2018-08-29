@@ -27,7 +27,14 @@ class RealmLocationStore {
             storedLocation.geometry = geometry
             storedLocation.properties = properties
         }
+    }
 
+    fun locationSynced(storedLocation: RealmLocation) {
+        val realm = Realm.getDefaultInstance()
+
+        realm.executeTransaction {
+            storedLocation.synchronised = true
+        }
     }
 
     fun retrieveNonSynchronisedLocations(): RealmResults<RealmLocation>? {
