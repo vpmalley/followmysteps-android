@@ -13,7 +13,7 @@ import io.realm.kotlin.where
 
 class RealmLocationStore {
 
-    fun storeLocation(location: Location) {
+    fun storeLocation(location: Location, locationName: String) {
         val realm = Realm.getDefaultInstance()
 
         realm.executeTransaction {
@@ -21,7 +21,7 @@ class RealmLocationStore {
             geometry.coordinates = RealmList(location.longitude, location.latitude)
 
             val properties = realm.createObject<RealmProperties>()
-            properties.title = "I was here"
+            properties.title = locationName
 
             val storedLocation = realm.createObject<RealmLocation>()
             storedLocation.geometry = geometry

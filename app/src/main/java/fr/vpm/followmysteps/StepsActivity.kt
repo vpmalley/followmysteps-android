@@ -64,7 +64,7 @@ class StepsActivity : AppCompatActivity() {
         builder.setTitle(R.string.location_name_title)
                 .setView(input)
                 .setPositiveButton(R.string.all_ok) { dialogInterface, i ->
-                    storeLocation(location)
+                    storeLocation(location, input.text.toString())
                 }
                 .setNegativeButton(R.string.all_cancel) { _, _ ->
                 }
@@ -91,8 +91,8 @@ class StepsActivity : AppCompatActivity() {
         return true
     }
 
-    private fun storeLocation(location: Location) {
-        RealmLocationStore().storeLocation(location)
+    private fun storeLocation(location: Location, locationName: String) {
+        RealmLocationStore().storeLocation(location, locationName)
         Snackbar.make(fab, "location stored", Snackbar.LENGTH_SHORT).show()
     }
 
