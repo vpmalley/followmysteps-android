@@ -10,8 +10,10 @@ import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
+import android.text.InputType
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.EditText
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.tasks.OnFailureListener
@@ -47,11 +49,26 @@ class StepsActivity : AppCompatActivity() {
                 for (location in locationResult.locations) {
                     stopLocationUpdates()
                     requestingLocationUpdates = false
-                    location?.let { storeLocation(location) }
+                    location?.let { askForTitle(location) }
                 }
             }
         }
         firebaseAuth = FirebaseAuth.getInstance()
+    }
+
+    private fun askForTitle(location: Location) {
+        val input = EditText(this)
+        input.inputType = InputType.TYPE_CLASS_TEXT
+
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle(R.string.location_name_title)
+                .setView(input)
+                .setPositiveButton(R.string.all_ok) { dialogInterface, i ->
+                    storeLocation(location)
+                }
+                .setNegativeButton(R.string.all_cancel) { _, _ ->
+                }
+        builder.create().show()
     }
 
     private fun syncAllLocations(): Boolean {

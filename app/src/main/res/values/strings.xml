@@ -6,4 +6,6 @@
     <string name="geoposition_permission_title">Your location</string>
     <string name="geoposition_permission_message">We will post your current location on the map of your steps</string>
     <string name="welcome_speech">Hi there! Click + to add one more step</string>
+    <string name="all_cancel">Cancel</string>
+    <string name="location_name_title">Where are you? Let\'s add a date too</string>
 </resources>
