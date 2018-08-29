@@ -16,7 +16,9 @@ import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_steps.*
+
 
 private const val ACCESS_FINE_LOCATION_REQ = 101
 private const val CHECK_SETTINGS_REQ = 102
@@ -25,7 +27,9 @@ class StepsActivity : AppCompatActivity() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
+    private lateinit var firebaseAuth: FirebaseAuth
     private var requestingLocationUpdates = false
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,20 +51,25 @@ class StepsActivity : AppCompatActivity() {
                 }
             }
         }
+        firebaseAuth = FirebaseAuth.getInstance()
     }
 
     private fun syncAllLocations(): Boolean {
         val firestoreLocationSync = FirestoreLocationSync()
-        val nonSynchronisedLocations = RealmLocationStore().retrieveNonSynchronisedLocations()
-        nonSynchronisedLocations?.forEach { location ->
-            firestoreLocationSync.syncLocation(location,
-                    OnSuccessListener {
-                        Snackbar.make(fab, "synced", Snackbar.LENGTH_SHORT).show()
-                        location.synchronised = true
-                    },
-                    OnFailureListener {
-                        Snackbar.make(fab, "failed syncing", Snackbar.LENGTH_SHORT).show()
-                    })
+        val realmLocationStore = RealmLocationStore()
+        val nonSynchronisedLocations = realmLocationStore.retrieveNonSynchronisedLocations()
+
+        firebaseAuth.signInAnonymously().addOnSuccessListener { authResult ->
+            nonSynchronisedLocations?.forEach { location ->
+                firestoreLocationSync.syncLocation(location,
+                        OnSuccessListener {
+                            Snackbar.make(fab, "synced", Snackbar.LENGTH_SHORT).show()
+                            realmLocationStore.locationSynced(location)
+                        },
+                        OnFailureListener {
+                            Snackbar.make(fab, "failed syncing", Snackbar.LENGTH_SHORT).show()
+                        })
+            }
         }
         return true
     }
