@@ -21,21 +21,35 @@ import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_steps.*
 
+import android.annotation.SuppressLint;
+import android.util.Log;
+import android.widget.Toast;
+import android.support.annotation.NonNull;
+// Classes needed to initialize the map
+import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.maps.MapView;
+import com.mapbox.mapboxsdk.maps.MapboxMap;
+import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
+import com.mapbox.mapboxsdk.maps.Style;
+
+
 
 private const val ACCESS_FINE_LOCATION_REQ = 101
 private const val CHECK_SETTINGS_REQ = 102
 
-class StepsActivity : AppCompatActivity() {
+class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
     private lateinit var firebaseAuth: FirebaseAuth
     private var requestingLocationUpdates = false
-
+	private mapboxMap : MapboxMap
+	private mapView : MapView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_steps)
+        Mapbox.getInstance(this, BuildConfig.MAPBOX_API_KEY)
         setSupportActionBar(toolbar)
 
         fab.setOnClickListener { view ->
@@ -52,9 +66,24 @@ class StepsActivity : AppCompatActivity() {
                     location?.let { askForTitle(location) }
                 }
             }
+ 
+		mapView = findViewById(R.id.mapView);
+		mapView.onCreate(savedInstanceState);
+		mapView.getMapAsync(this);
         }
         firebaseAuth = FirebaseAuth.getInstance()
     }
+    
+    override fun onMapReady(mapboxMap : MapboxMap) {
+		this.mapboxMap = mapboxMap;
+		 
+		mapboxMap.setStyle(Style.TRAFFIC_NIGHT,
+		new Style.OnStyleLoaded() {
+			override fun onStyleLoaded(style : Style) {
+				enableLocationComponent(style)
+			}
+		});
+	}
 
     private fun askForTitle(location: Location) {
         val input = EditText(this)
@@ -112,15 +141,42 @@ class StepsActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
+    
+    override fun onStart() {
+        super.onStart()
+        mapView.onStart()
+    }
 
     override fun onResume() {
         super.onResume()
         startLocationUpdates()
+        mapView.onResume()
     }
 
     override fun onPause() {
         super.onPause()
         stopLocationUpdates()
+        mapView.onPause()
+    }
+    
+    override fun onStop() {
+        super.onStop()
+        mapView.onStop()
+    }
+    
+    override fun onSaveInstanceState() {
+        super.onSaveInstanceState()
+        mapView.onSaveInstanceState()
+    }
+
+	override fun onDestroy() {
+        super.onDestroy()
+        mapView.onDestroy()
+    }
+    
+	override fun onLowMemory() {
+        super.onLowMemory()
+        mapView.onLowMemory()
     }
 
     private fun startLocationUpdates() {
