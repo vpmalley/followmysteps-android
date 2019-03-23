@@ -43,8 +43,7 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
     private lateinit var locationCallback: LocationCallback
     private lateinit var firebaseAuth: FirebaseAuth
     private var requestingLocationUpdates = false
-	private mapboxMap : MapboxMap
-	private mapView : MapView
+	private lateinit var mapboxMap : MapboxMap
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,7 +66,6 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
                 }
             }
  
-		mapView = findViewById(R.id.mapView);
 		mapView.onCreate(savedInstanceState);
 		mapView.getMapAsync(this);
         }
@@ -75,10 +73,10 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
     }
     
     override fun onMapReady(mapboxMap : MapboxMap) {
-		this.mapboxMap = mapboxMap;
+		this.mapboxMap = mapboxMap
 		 
-		mapboxMap.setStyle(Style.TRAFFIC_NIGHT,
-		new Style.OnStyleLoaded() {
+		mapboxMap.setStyle(Style.TRAFFIC_NIGHT, 
+          Style.OnStyleLoaded() {
 			override fun onStyleLoaded(style : Style) {
 				enableLocationComponent(style)
 			}
