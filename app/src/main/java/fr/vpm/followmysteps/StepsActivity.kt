@@ -21,16 +21,21 @@ import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_steps.*
 
-import android.annotation.SuppressLint;
-import android.util.Log;
-import android.widget.Toast;
-import android.support.annotation.NonNull;
+import android.annotation.SuppressLint
+import android.util.Log
+import android.widget.Toast
+import android.support.annotation.NonNull
 // Classes needed to initialize the map
 import com.mapbox.mapboxsdk.Mapbox;
-import com.mapbox.mapboxsdk.maps.MapView;
-import com.mapbox.mapboxsdk.maps.MapboxMap;
-import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
-import com.mapbox.mapboxsdk.maps.Style;
+import com.mapbox.mapboxsdk.maps.MapView
+import com.mapbox.mapboxsdk.maps.MapboxMap
+import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
+import com.mapbox.mapboxsdk.maps.Style
+import com.mapbox.android.core.permissions.PermissionsListener
+import com.mapbox.android.core.permissions.PermissionsManager
+import com.mapbox.mapboxsdk.location.LocationComponent
+import com.mapbox.mapboxsdk.location.modes.CameraMode
+import com.mapbox.mapboxsdk.location.modes.RenderMode
 
 
 
@@ -75,10 +80,9 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
     
     override fun onMapReady(mapboxMap : MapboxMap) {
 		this.mapboxMap = mapboxMap
-		 
 		mapboxMap.setStyle(Style.TRAFFIC_NIGHT, Style.OnStyleLoaded() {
-			override fun onStyleLoaded(style : Style) {
-				enableLocationComponent(style)
+			fun onStyleLoaded(style : Style) {
+				//enableLocationComponent(style)
 			}
 		});
 	}
@@ -161,13 +165,13 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
         super.onStop()
         mapView.onStop()
     }
-    
-    override fun onSaveInstanceState() {
-        super.onSaveInstanceState()
-        mapView.onSaveInstanceState()
-    }
 
-	override fun onDestroy() {
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        mapView.onSaveInstanceState(outState)
+    }
+	
+    override fun onDestroy() {
         super.onDestroy()
         mapView.onDestroy()
     }
