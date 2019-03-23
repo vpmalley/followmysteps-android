@@ -44,6 +44,7 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
     private lateinit var firebaseAuth: FirebaseAuth
     private var requestingLocationUpdates = false
 	private lateinit var mapboxMap : MapboxMap
+	private lateinit var mapView : MapView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,7 +66,7 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
                     location?.let { askForTitle(location) }
                 }
             }
- 
+		mapView = findViewById(R.id.mapView)
 		mapView.onCreate(savedInstanceState);
 		mapView.getMapAsync(this);
         }
