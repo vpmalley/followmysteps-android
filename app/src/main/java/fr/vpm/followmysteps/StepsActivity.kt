@@ -66,18 +66,17 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
                     location?.let { askForTitle(location) }
                 }
             }
-		mapView = findViewById(R.id.mapView)
-		mapView.onCreate(savedInstanceState);
-		mapView.getMapAsync(this);
         }
+	mapView = findViewById(R.id.mapView)
+	mapView.onCreate(savedInstanceState);
+	mapView.getMapAsync(this);
         firebaseAuth = FirebaseAuth.getInstance()
     }
     
     override fun onMapReady(mapboxMap : MapboxMap) {
 		this.mapboxMap = mapboxMap
 		 
-		mapboxMap.setStyle(Style.TRAFFIC_NIGHT, 
-          Style.OnStyleLoaded() {
+		mapboxMap.setStyle(Style.TRAFFIC_NIGHT, Style.OnStyleLoaded() {
 			override fun onStyleLoaded(style : Style) {
 				enableLocationComponent(style)
 			}
