@@ -168,7 +168,7 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
-        mapView.onSaveInstanceState(outState)
+        mapView.onSaveInstanceState(outState ?: Bundle ())
     }
 	
     override fun onDestroy() {
