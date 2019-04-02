@@ -58,7 +58,7 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_steps)
-        Mapbox.getInstance(this, "pk.eyJ1IjoidmluY2V0cmF2ZWxsZXIiLCJhIjoiY2psMnVhMnpnMW9weDNrcXJla3UycGdycyJ9.l3R_I6EyVAxFvghBMOHmRQ")
+        Mapbox.getInstance(this, BuildConfig.MAPBOX_API_KEY)
         setSupportActionBar(toolbar)
 
         fab.setOnClickListener { view ->
