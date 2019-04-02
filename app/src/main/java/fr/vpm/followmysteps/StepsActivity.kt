@@ -2,6 +2,7 @@ package fr.vpm.followmysteps
 
 // Classes needed to initialize the map
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.location.Location
@@ -12,6 +13,7 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.text.InputType
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
@@ -21,13 +23,19 @@ import com.google.android.gms.location.*
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.auth.FirebaseAuth
+import com.mapbox.android.core.location.*
 import com.mapbox.android.core.permissions.PermissionsListener
+import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.mapboxsdk.Mapbox
+import com.mapbox.mapboxsdk.location.LocationComponent
+import com.mapbox.mapboxsdk.location.modes.CameraMode
+import com.mapbox.mapboxsdk.location.modes.RenderMode
 import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
 import com.mapbox.mapboxsdk.maps.Style
 import kotlinx.android.synthetic.main.activity_steps.*
+import java.lang.ref.WeakReference
 
 
 private const val ACCESS_FINE_LOCATION_REQ = 101
@@ -41,11 +49,16 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
     private var requestingLocationUpdates = false
     private lateinit var mapboxMap: MapboxMap
     private lateinit var mapView: MapView
+    private lateinit var permissionsManager: PermissionsManager
+    private lateinit var locationEngine: LocationEngine
+    private val callback: MainActivityLocationCallback = MainActivityLocationCallback(this)
+    private val DEFAULT_INTERVAL_IN_MILLISECONDS: Long = 1000L;
+    private val DEFAULT_MAX_WAIT_TIME: Long = DEFAULT_INTERVAL_IN_MILLISECONDS * 5;
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_steps)
-        Mapbox.getInstance(this, BuildConfig.MAPBOX_API_KEY)
+        Mapbox.getInstance(this, "pk.eyJ1IjoidmluY2V0cmF2ZWxsZXIiLCJhIjoiY2psMnVhMnpnMW9weDNrcXJla3UycGdycyJ9.l3R_I6EyVAxFvghBMOHmRQ")
         setSupportActionBar(toolbar)
 
         fab.setOnClickListener { view ->
@@ -76,6 +89,51 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
                 //enableLocationComponent(style)
             }
         });
+    }
+
+    private fun enableLocationComponent(loadedMapStyle: Style) {
+// Check if permissions are enabled and if not request
+        if (PermissionsManager.areLocationPermissionsGranted(this)) {
+
+// Get an instance of the component
+            val locationComponent: LocationComponent = mapboxMap.getLocationComponent();
+
+// Set the LocationComponent activation options
+            /*
+            val locationComponentActivationOptions: LocationComponentActivationOptions =
+                    LocationComponentActivationOptions.builder(this, loadedMapStyle)
+                            .useDefaultLocationEngine(false)
+                            .build();
+
+// Activate with the LocationComponentActivationOptions object
+            locationComponent.activateLocationComponent(locationComponentActivationOptions)
+*/
+// Enable to make component visible
+            locationComponent.setLocationComponentEnabled(true);
+
+// Set the component's camera mode
+            locationComponent.setCameraMode(CameraMode.TRACKING);
+
+// Set the component's render mode
+            locationComponent.setRenderMode(RenderMode.COMPASS);
+
+            initLocationEngine()
+        } else {
+            permissionsManager = PermissionsManager(this)
+            permissionsManager.requestLocationPermissions(this)
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun initLocationEngine() {
+        locationEngine = LocationEngineProvider.getBestLocationEngine(this)
+
+        val request: LocationEngineRequest = LocationEngineRequest.Builder(DEFAULT_INTERVAL_IN_MILLISECONDS)
+                .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
+                .setMaxWaitTime(DEFAULT_MAX_WAIT_TIME).build();
+
+        locationEngine.requestLocationUpdates(request, callback, getMainLooper())
+        locationEngine.getLastLocation(callback)
     }
 
     private fun askForTitle(location: Location) {
@@ -164,6 +222,9 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
 
     override fun onDestroy() {
         super.onDestroy()
+        if (locationEngine != null) {
+            locationEngine.removeLocationUpdates(callback)
+        }
         mapView.onDestroy()
     }
 
@@ -264,6 +325,54 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
             interval = 10000
             fastestInterval = 10000
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        }
+    }
+
+    private class MainActivityLocationCallback(activity: StepsActivity)
+        : LocationEngineCallback<LocationEngineResult> {
+
+        private val activityWeakReference: WeakReference<StepsActivity> = WeakReference(activity)
+
+        /**
+         * The LocationEngineCallback interface's method which fires when the device's location has changed.
+         *
+         * @param result the LocationEngineResult object which has the last known location within it.
+         */
+        override fun onSuccess(result: LocationEngineResult) {
+
+            val activity = activityWeakReference.get()
+            if (activity != null) {
+                val location: Location? = result.getLastLocation();
+
+                if (location == null) {
+                    return;
+                }
+
+// Create a Toast which displays the new location's coordinates
+                Toast.makeText(activity,
+                        "New location : ${result.getLastLocation()?.getLatitude()}, ${result.getLastLocation()?.getLongitude()}",
+                        Toast.LENGTH_SHORT)
+                        .show()
+
+// Pass the new location to the Maps SDK's LocationComponent
+                if (activity.mapboxMap != null && result.getLastLocation() != null) {
+                    activity.mapboxMap.getLocationComponent().forceLocationUpdate(result.getLastLocation());
+                }
+            }
+        }
+
+        /**
+         * The LocationEngineCallback interface's method which fires when the device's location can not be captured
+         *
+         * @param exception the exception message
+         */
+        override fun onFailure(exception: Exception) {
+            Log.d("LocationChangeActivity", exception.getLocalizedMessage())
+            val activity: StepsActivity? = activityWeakReference.get()
+            if (activity != null) {
+                Toast.makeText(activity, exception.getLocalizedMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
