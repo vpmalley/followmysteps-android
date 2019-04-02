@@ -8,4 +8,5 @@
     <string name="welcome_speech">Hi there! Click + to add one more step</string>
     <string name="all_cancel">Cancel</string>
     <string name="location_name_title">Where are you? Let\'s add a date too</string>
+    <string name="user_location_permission_explanation">We use your location to record your adventures</string>
 </resources>

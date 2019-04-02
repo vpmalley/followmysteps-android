@@ -1,5 +1,6 @@
 package fr.vpm.followmysteps
 
+// Classes needed to initialize the map
 import android.Manifest
 import android.content.IntentSender
 import android.content.pm.PackageManager
@@ -14,29 +15,19 @@ import android.text.InputType
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
+import android.widget.Toast
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.android.synthetic.main.activity_steps.*
-
-import android.annotation.SuppressLint
-import android.util.Log
-import android.widget.Toast
-import android.support.annotation.NonNull
-// Classes needed to initialize the map
-import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.android.core.permissions.PermissionsListener
+import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
 import com.mapbox.mapboxsdk.maps.Style
-import com.mapbox.android.core.permissions.PermissionsListener
-import com.mapbox.android.core.permissions.PermissionsManager
-import com.mapbox.mapboxsdk.location.LocationComponent
-import com.mapbox.mapboxsdk.location.modes.CameraMode
-import com.mapbox.mapboxsdk.location.modes.RenderMode
-
+import kotlinx.android.synthetic.main.activity_steps.*
 
 
 private const val ACCESS_FINE_LOCATION_REQ = 101
@@ -48,8 +39,8 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
     private lateinit var locationCallback: LocationCallback
     private lateinit var firebaseAuth: FirebaseAuth
     private var requestingLocationUpdates = false
-	private lateinit var mapboxMap : MapboxMap
-	private lateinit var mapView : MapView
+    private lateinit var mapboxMap: MapboxMap
+    private lateinit var mapView: MapView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,20 +63,20 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
                 }
             }
         }
-	mapView = findViewById(R.id.mapView)
-	mapView.onCreate(savedInstanceState);
-	mapView.getMapAsync(this);
+        mapView = findViewById(R.id.mapView)
+        mapView.onCreate(savedInstanceState);
+        mapView.getMapAsync(this);
         firebaseAuth = FirebaseAuth.getInstance()
     }
-    
-    override fun onMapReady(mapboxMap : MapboxMap) {
-		this.mapboxMap = mapboxMap
-		mapboxMap.setStyle(Style.TRAFFIC_NIGHT, Style.OnStyleLoaded() {
-			fun onStyleLoaded(style : Style) {
-				//enableLocationComponent(style)
-			}
-		});
-	}
+
+    override fun onMapReady(mapboxMap: MapboxMap) {
+        this.mapboxMap = mapboxMap
+        mapboxMap.setStyle(Style.TRAFFIC_NIGHT, Style.OnStyleLoaded() {
+            fun onStyleLoaded(style: Style) {
+                //enableLocationComponent(style)
+            }
+        });
+    }
 
     private fun askForTitle(location: Location) {
         val input = EditText(this)
@@ -143,7 +134,7 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
             else -> super.onOptionsItemSelected(item)
         }
     }
-    
+
     override fun onStart() {
         super.onStart()
         mapView.onStart()
@@ -160,7 +151,7 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
         stopLocationUpdates()
         mapView.onPause()
     }
-    
+
     override fun onStop() {
         super.onStop()
         mapView.onStop()
@@ -168,15 +159,15 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
-        mapView.onSaveInstanceState(outState ?: Bundle ())
+        mapView.onSaveInstanceState(outState ?: Bundle())
     }
-	
+
     override fun onDestroy() {
         super.onDestroy()
         mapView.onDestroy()
     }
-    
-	override fun onLowMemory() {
+
+    override fun onLowMemory() {
         super.onLowMemory()
         mapView.onLowMemory()
     }
@@ -231,6 +222,21 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
                 }
             }
         }
+    }
+
+    override fun onPermissionResult(granted: Boolean) {
+        if (granted) {
+            if (mapboxMap.getStyle() != null) {
+                //enableLocationComponent(mapboxMap.getStyle());
+            }
+        } else {
+            Toast.makeText(this, R.string.snackbar_geoposition_permission_denied, Toast.LENGTH_LONG).show();
+            finish();
+        }
+    }
+
+    override fun onExplanationNeeded(permissionsToExplain: List<String>) {
+        Toast.makeText(this, R.string.user_location_permission_explanation, Toast.LENGTH_LONG).show();
     }
 
     private fun determineGeoPosition() {
