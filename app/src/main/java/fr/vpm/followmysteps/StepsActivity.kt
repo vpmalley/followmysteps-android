@@ -57,8 +57,8 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_steps)
         Mapbox.getInstance(this, BuildConfig.MAPBOX_API_KEY)
+        setContentView(R.layout.activity_steps)
         setSupportActionBar(toolbar)
 
         fab.setOnClickListener { view ->
@@ -77,18 +77,18 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
             }
         }
         mapView = findViewById(R.id.mapView)
-        mapView.onCreate(savedInstanceState);
-        mapView.getMapAsync(this);
+        mapView.onCreate(savedInstanceState)
+        mapView.getMapAsync(this)
         firebaseAuth = FirebaseAuth.getInstance()
     }
 
     override fun onMapReady(mapboxMap: MapboxMap) {
         this.mapboxMap = mapboxMap
-        mapboxMap.setStyle(Style.TRAFFIC_NIGHT, Style.OnStyleLoaded() {
+        mapboxMap.setStyle(Style.TRAFFIC_NIGHT) {
             fun onStyleLoaded(style: Style) {
-                //enableLocationComponent(style)
+                enableLocationComponent(style)
             }
-        });
+        };
     }
 
     private fun enableLocationComponent(loadedMapStyle: Style) {
