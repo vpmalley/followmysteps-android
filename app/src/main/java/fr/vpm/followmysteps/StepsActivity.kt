@@ -28,6 +28,7 @@ import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.location.LocationComponent
+import com.mapbox.mapboxsdk.location.LocationComponentOptions
 import com.mapbox.mapboxsdk.location.modes.CameraMode
 import com.mapbox.mapboxsdk.location.modes.RenderMode
 import com.mapbox.mapboxsdk.maps.MapView
@@ -60,7 +61,7 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
         Mapbox.getInstance(this, BuildConfig.MAPBOX_API_KEY)
         setContentView(R.layout.activity_steps)
         setSupportActionBar(toolbar)
-
+/*
         fab.setOnClickListener { view ->
             askGeoPosition()
         }
@@ -76,6 +77,7 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
                 }
             }
         }
+        */
         mapView = findViewById(R.id.mapView)
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
@@ -84,7 +86,7 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
 
     override fun onMapReady(mapboxMap: MapboxMap) {
         this.mapboxMap = mapboxMap
-        mapboxMap.setStyle(Style.TRAFFIC_NIGHT) {
+        mapboxMap.setStyle(Style.MAPBOX_STREETS) {
             fun onStyleLoaded(style: Style) {
                 enableLocationComponent(style)
             }
@@ -95,19 +97,11 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
 // Check if permissions are enabled and if not request
         if (PermissionsManager.areLocationPermissionsGranted(this)) {
 
-// Get an instance of the component
-            val locationComponent: LocationComponent = mapboxMap.getLocationComponent();
-
-// Set the LocationComponent activation options
-            /*
-            val locationComponentActivationOptions: LocationComponentActivationOptions =
-                    LocationComponentActivationOptions.builder(this, loadedMapStyle)
-                            .useDefaultLocationEngine(false)
-                            .build();
+            val locationComponent = mapboxMap.locationComponent
 
 // Activate with the LocationComponentActivationOptions object
-            locationComponent.activateLocationComponent(locationComponentActivationOptions)
-*/
+            locationComponent.activateLocationComponent(this, loadedMapStyle)
+
 // Enable to make component visible
             locationComponent.setLocationComponentEnabled(true);
 
@@ -200,13 +194,13 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
 
     override fun onResume() {
         super.onResume()
-        startLocationUpdates()
+//        startLocationUpdates()
         mapView.onResume()
     }
 
     override fun onPause() {
         super.onPause()
-        stopLocationUpdates()
+//        stopLocationUpdates()
         mapView.onPause()
     }
 
@@ -222,9 +216,7 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
 
     override fun onDestroy() {
         super.onDestroy()
-        if (locationEngine != null) {
-            locationEngine.removeLocationUpdates(callback)
-        }
+        locationEngine?.removeLocationUpdates(callback)
         mapView.onDestroy()
     }
 
@@ -233,51 +225,52 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
         mapView.onLowMemory()
     }
 
-    private fun startLocationUpdates() {
-        try {
-            if (requestingLocationUpdates)
-                fusedLocationClient.requestLocationUpdates(locationRequest(),
-                        locationCallback,
-                        null)
-        } catch (e: SecurityException) {
-            Snackbar.make(fab, "could not find location", Snackbar.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun stopLocationUpdates() {
-        if (requestingLocationUpdates)
-            fusedLocationClient.removeLocationUpdates(locationCallback)
-    }
-
-    private fun askGeoPosition() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                            Manifest.permission.ACCESS_FINE_LOCATION)) {
-                val builder = AlertDialog.Builder(this)
-                builder.setTitle(R.string.geoposition_permission_title)
-                        .setMessage(R.string.geoposition_permission_message)
-                        .setPositiveButton(R.string.all_ok) { dialogInterface, i ->
-                            ActivityCompat.requestPermissions(this,
-                                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                                    ACCESS_FINE_LOCATION_REQ)
-                        }
-                builder.create().show()
-            } else {
-                ActivityCompat.requestPermissions(this,
-                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                        ACCESS_FINE_LOCATION_REQ)
+    /*
+        private fun startLocationUpdates() {
+            try {
+                if (requestingLocationUpdates)
+                    fusedLocationClient.requestLocationUpdates(locationRequest(),
+                            locationCallback,
+                            null)
+            } catch (e: SecurityException) {
+                Snackbar.make(fab, "could not find location", Snackbar.LENGTH_SHORT).show()
             }
-        } else {
-            determineGeoPosition()
         }
-    }
 
+        private fun stopLocationUpdates() {
+            if (requestingLocationUpdates)
+                fusedLocationClient.removeLocationUpdates(locationCallback)
+        }
+
+        private fun askGeoPosition() {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                                Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    val builder = AlertDialog.Builder(this)
+                    builder.setTitle(R.string.geoposition_permission_title)
+                            .setMessage(R.string.geoposition_permission_message)
+                            .setPositiveButton(R.string.all_ok) { dialogInterface, i ->
+                                ActivityCompat.requestPermissions(this,
+                                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                                        ACCESS_FINE_LOCATION_REQ)
+                            }
+                    builder.create().show()
+                } else {
+                    ActivityCompat.requestPermissions(this,
+                            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                            ACCESS_FINE_LOCATION_REQ)
+                }
+            } else {
+                determineGeoPosition()
+            }
+        }
+    */
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         when (requestCode) {
             ACCESS_FINE_LOCATION_REQ -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    determineGeoPosition()
+                    //determineGeoPosition()
                 } else {
                     Snackbar.make(fab, R.string.snackbar_geoposition_permission_denied, Snackbar.LENGTH_SHORT).show()
                 }
@@ -288,7 +281,7 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
     override fun onPermissionResult(granted: Boolean) {
         if (granted) {
             if (mapboxMap.getStyle() != null) {
-                //enableLocationComponent(mapboxMap.getStyle());
+                enableLocationComponent(mapboxMap.getStyle()!!)
             }
         } else {
             Toast.makeText(this, R.string.snackbar_geoposition_permission_denied, Toast.LENGTH_LONG).show();
@@ -299,7 +292,7 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
     override fun onExplanationNeeded(permissionsToExplain: List<String>) {
         Toast.makeText(this, R.string.user_location_permission_explanation, Toast.LENGTH_LONG).show();
     }
-
+/*
     private fun determineGeoPosition() {
         val locationRequest = locationRequest()
         val builder = LocationSettingsRequest.Builder()
@@ -327,6 +320,7 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
     }
+*/
 
     private class MainActivityLocationCallback(activity: StepsActivity)
         : LocationEngineCallback<LocationEngineResult> {
