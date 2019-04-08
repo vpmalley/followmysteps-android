@@ -1,15 +1,11 @@
 package fr.vpm.followmysteps
 
 // Classes needed to initialize the map
-import android.Manifest
 import android.annotation.SuppressLint
-import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
 import android.support.design.widget.Snackbar
-import android.support.v4.app.ActivityCompat
-import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.text.InputType
@@ -18,8 +14,8 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
 import android.widget.Toast
-import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.*
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.auth.FirebaseAuth
@@ -27,8 +23,6 @@ import com.mapbox.android.core.location.*
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.mapboxsdk.Mapbox
-import com.mapbox.mapboxsdk.location.LocationComponent
-import com.mapbox.mapboxsdk.location.LocationComponentOptions
 import com.mapbox.mapboxsdk.location.modes.CameraMode
 import com.mapbox.mapboxsdk.location.modes.RenderMode
 import com.mapbox.mapboxsdk.maps.MapView
@@ -80,17 +74,17 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
         */
         mapView = findViewById(R.id.mapView)
         mapView.onCreate(savedInstanceState)
-        mapView.getMapAsync(this)
+        mapView.getMapAsync { mapboxMap ->
+            onMapReady(mapboxMap)
+        }
         firebaseAuth = FirebaseAuth.getInstance()
     }
 
     override fun onMapReady(mapboxMap: MapboxMap) {
         this.mapboxMap = mapboxMap
-        mapboxMap.setStyle(Style.MAPBOX_STREETS) {
-            fun onStyleLoaded(style: Style) {
-                enableLocationComponent(style)
-            }
-        };
+        mapboxMap.setStyle(Style.MAPBOX_STREETS) { style ->
+            enableLocationComponent(style)
+        }
     }
 
     private fun enableLocationComponent(loadedMapStyle: Style) {
@@ -350,7 +344,7 @@ class StepsActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListen
 
 // Pass the new location to the Maps SDK's LocationComponent
                 if (activity.mapboxMap != null && result.getLastLocation() != null) {
-                    activity.mapboxMap.getLocationComponent().forceLocationUpdate(result.getLastLocation());
+                    activity.mapboxMap.locationComponent.forceLocationUpdate(result.getLastLocation());
                 }
             }
         }
